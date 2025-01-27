@@ -1,5 +1,14 @@
 # plex-session-ntfy
 
+The following values can be set in `.env`, or however you prefer to set
+environment variables:
+
+- `PlexIP` (optional, default:"127.0.0.1")
+- `PlexToken` (required)
+- `NtfyTopicURL` (required)
+- `IgnoredUser` (optional)
+- `CheckInterval` (required, default:"30s")
+
 After setting relevant variables in `psn.py`, run it to monitor the Plex
 API for any new sessions. When one is found, a notification will be sent
 to the topic configured.
