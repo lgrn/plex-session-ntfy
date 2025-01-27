@@ -47,15 +47,11 @@ func (c Config) fetch_videos() ([]Video, error) {
 }
 
 const filmNotification = `
-
-User {{.User.Title}} started watching
-the film {{.Title}}
+{{.User.Title}} started watching '{{.Title}}'
 `
 
 const tvNotification = `
-
-User {{.User.Title}} started watching
-tv series {{.GrandparentTitle}} - {{.Title}}
+{{.User.Title}} started watching {{.GrandparentTitle}}: '{{.Title}}'
 `
 
 func renderNotification(video Video) (string, error) {
