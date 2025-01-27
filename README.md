@@ -1,15 +1,38 @@
 # plex-session-ntfy
 
-After setting relevant variables in `psn.py`, run it to monitor the Plex
-API for any new sessions. When one is found, a notification will be sent
-to the topic configured.
+The following values can be set in `.env`, or however you prefer to set
+environment variables:
 
-This is just a proof of concept, and there are many things to improve.
-PRs are welcome.
+- `PSN_PLEX_IP` (optional, default:"127.0.0.1")
+- `PSN_PLEX_TOKEN` (required)
+- `PSN_NTFY_TOPIC_URL` (required)
+- `PSN_IGNORED_USER` (optional)
+- `PSN_CHECK_INTERVAL` (required, default:"30s")
 
-## How to run
+## systemd service
 
-Clone the repo, set up a virtual environment with `python -m venv`,
-source `bin/activate` and run `psn.py`.
+```ini
+[Unit]
+Description=Plex Session Notifier Service
+After=network.target
+Requires=plexmediaserver.service
 
-You may want to run this as a service.
+[Service]
+Type=simple
+EnvironmentFile=/root/plex-session-ntfy/.env
+ExecStart=/usr/local/go/bin/go run /root/plex-session-ntfy/psn.go
+Restart=on-failure
+User=root
+WorkingDirectory=/root/plex-session-ntfy/
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+systemctl daemon-reload
+systemctl enable plex-session-ntfy --now
+```
+
+Yes, you can obviously compile the binary instead of running
+`go run`.

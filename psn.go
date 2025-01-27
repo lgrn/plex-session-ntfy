@@ -17,6 +17,7 @@ import (
 
 type Session struct{}
 
+// poorly named function that fetches active sessions, not videos.
 func (c Config) fetch_videos() ([]Video, error) {
 	statusURL, err := url.Parse(
 		fmt.Sprintf("http://%s:32400/status/sessions?X-Plex-Token=%s", c.PlexIP, c.PlexToken),
@@ -46,15 +47,11 @@ func (c Config) fetch_videos() ([]Video, error) {
 }
 
 const filmNotification = `
-
-User {{.User.Title}} started watching
-the film {{.Title}}
+{{.User.Title}} started watching '{{.Title}}'
 `
 
 const tvNotification = `
-
-User {{.User.Title}} started watching
-tv series {{.GrandparentTitle}} - {{.Title}}
+{{.User.Title}} started watching {{.GrandparentTitle}}: '{{.Title}}'
 `
 
 func renderNotification(video Video) (string, error) {
@@ -147,7 +144,6 @@ func main() {
 	exit(c.run())
 }
 
-// MediaContainer was generated 2025-01-24 22:17:16 by https://xml-to-go.github.io/ in Ukraine.
 type MediaContainer struct {
 	XMLName xml.Name `xml:"MediaContainer"`
 	Text    string   `xml:",chardata"`
