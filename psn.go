@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"html"
 	"html/template"
 	"io"
 	"net/http"
@@ -71,7 +72,7 @@ func renderNotification(video Video) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed rendering template: %w", err)
 	}
-	return renderedMarkdown.String(), nil
+	return html.UnescapeString(renderedMarkdown.String()), nil
 }
 
 func (c Config) sendNotification(payload string) error {
