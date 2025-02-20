@@ -27,9 +27,13 @@ func (c Config) fetch_videos() ([]Video, error) {
 		return []Video{}, fmt.Errorf("failed to parse status URL: %w", err)
 	}
 	resp, err := http.Get(statusURL.String())
+
 	if err != nil {
 		return []Video{}, fmt.Errorf("failed to issue GET request against status url: %w", err)
 	}
+
+	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusUnauthorized {
 		return []Video{}, fmt.Errorf("invalid plex token: %w", err)
 	}
