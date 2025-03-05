@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"html"
@@ -98,33 +99,39 @@ func (c Config) sendNotification(payload string) error {
 	return nil
 }
 
-func (c Config) run() error {
+func (c Config) run(ctx context.Context) error {
+	ticker := time.NewTicker(c.CheckInterval)
+	defer ticker.Stop()
 	sessions := make(map[string]bool, 0)
 	for {
-		videos, err := c.fetch_videos()
-		if err != nil {
-			return err
-		}
-		if len(videos) == 0 {
-			continue
-		}
-		for _, video := range videos {
-			if video.User.Title == c.IgnoredUser {
-				continue
-			}
-			if sessions[video.SessionKey] { // Already notified
-				continue
-			}
-			sessions[video.SessionKey] = true
-			payload, err := renderNotification(videos[0])
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			videos, err := c.fetch_videos()
 			if err != nil {
 				return err
 			}
-			if err = c.sendNotification(payload); err != nil {
-				return err
+			if len(videos) == 0 {
+				continue
+			}
+			for _, video := range videos {
+				if video.User.Title == c.IgnoredUser {
+					continue
+				}
+				if sessions[video.SessionKey] { // Already notified
+					continue
+				}
+				sessions[video.SessionKey] = true
+				payload, err := renderNotification(videos[0])
+				if err != nil {
+					return err
+				}
+				if err = c.sendNotification(payload); err != nil {
+					return err
+				}
 			}
 		}
-		time.Sleep(c.CheckInterval)
 	}
 }
 
@@ -142,11 +149,17 @@ func exit(err error) {
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	var c Config
 	if err := envconfig.Process("psn", &c); err != nil {
 		exit(fmt.Errorf("failed to parse env vars: %w", err))
 	}
-	exit(c.run())
+
+	if err := c.run(ctx); err != nil {
+		exit(err)
+	}
 }
 
 type MediaContainer struct {
